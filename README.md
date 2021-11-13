@@ -17,7 +17,7 @@ Given the following json data into file data.txt
 ]
 
 
-To read the data from file and perform the operations on data I am goining to use pyspark.
+#To read the data from file and perform the operations on data I am goining to use pyspark.
 
 import pyspark
 from pyspark.sql import SparkSession
@@ -26,7 +26,6 @@ from pyspark.sql.types import StructType, StructField, StringType,IntegerType
 from pyspark.sql.functions import round, col
 from pyspark.sql.functions import udf, log
 
-#create a spark session
 spark = SparkSession.builder.appName('SparkByExamples.com').getOrCreate()
 
 
@@ -60,17 +59,13 @@ def getRisk(R):
 
 fun = udf(getCatg)
 fun1 = udf(getRisk)
-# reading data from file and create a dataframe
 df = spark.read.option("multiline","true").json("/home/gaurav/data.txt")
 #calculate BMI using fromula and creating a new column
 df1= df.withColumn('BMI',(df.WeigthKg)/(df.HeightCm**2)*10000)
 df2=df1.select("*", round(col('BMI'),2)).drop('BMI').withColumnRenamed("round(BMI, 2)", "BMI")
-#add two columns for BMI category and health risk by calling functions for both
 res = df2.withColumn("BMICategory", fun(df2.BMI)).withColumn("Health Risk", fun1(df2.BMI))
 res.show()
-
 res.createOrReplaceTempView("BMITable")
-# to count total number of overwieght people from the table
 spark.sql(" select count(*) from BMITable where BMICategory='Overweight' ").show()
 
 
